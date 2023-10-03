@@ -1,16 +1,11 @@
 from flask import Flask
-from flask_restful import Resource, Api
+from flask_restful import Api
+from controllers.start_game import StartGame
 
 app = Flask(__name__)
 api = Api(app)
 
-class HelloWorld(Resource):
-    def get(self, name):
-        return {
-            "message": "hello world, " + name
-        }
-
-api.add_resource(HelloWorld, "/hi/<string:name>")
+api.add_resource(StartGame, "/game/start")
 
 if __name__ == '__main__':
     app.run(debug=True)
