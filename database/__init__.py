@@ -1,1 +1,1 @@
-from .models import Characters, Game
+from .models import Character, Game

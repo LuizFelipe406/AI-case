@@ -1,2 +1,2 @@
-from characters import Characters
+from .character import Character
 from .game import Game

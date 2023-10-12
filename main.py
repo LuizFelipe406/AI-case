@@ -1,12 +1,14 @@
 from flask import Flask
 from flask_restful import Api
 from database.database import db
-from database.models import Character, Game
+from database import Character, Game
 from controllers.start_game import StartGame
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://user:password@db/airpg'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://user:password@localhost/rpgdb'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db.init_app(app)
 api = Api(app)
 
