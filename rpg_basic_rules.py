@@ -5,6 +5,7 @@
 rpg_roles = """
 Warrior: {
 	role: Warrior
+  type: choose between human, elf, orc or fairy
 	name: user_input + last name
   attack: choose a random number between 4 and 6
 	life: choose a random number between  30 and 40
@@ -13,6 +14,7 @@ Warrior: {
 },
 Mage: {
 	role: Mage
+  type: choose between human, elf, orc or fairy
 	name: user_input + last name
 	attack: choose a random number between  7 and 10
 	life: choose a random number between  25 and 30
@@ -21,6 +23,7 @@ Mage: {
 },
 Assassin: {
 	role: Assassin
+  type: choose between human, elf, orc or fairy
 	name: user_input + last name
 	attack: choose a random number between  7 and 10
 	life: choose a random number between  23 and 28
@@ -29,6 +32,7 @@ Assassin: {
 },
 Healer: {
 	role: Healer
+  type: choose between human, elf, orc or fairy
 	name: user_input + last name
 	heal: choose a random number between  4 and 6
 	life: choose a random number between  25 and 30
