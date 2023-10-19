@@ -58,8 +58,8 @@ class StartGame(Resource):
         answer = answer.replace("\n", "")
         game = Game(
             game_id=re.search(r'\d{5}', answer, re.M).group(),
-            story=re.search(r'(?<=The\sQuest:)[\s\S]*', answer, re.M).group(),
-            status='on going'
+            story = game.story + re.search(r'(?<=The\sQuest:)[\s\S]*', answer, re.M).group(),
+            status='started'
             )
 
         db.session.add(game)

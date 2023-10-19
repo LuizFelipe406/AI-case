@@ -34,10 +34,10 @@ Healer: {
 	role: Healer
   type: choose between human, elf, orc or fairy
 	name: user_input + last name
-	heal: choose a random number between  4 and 6
+	heal: choose a random number between  2 and 4
 	life: choose a random number between  25 and 30
 	defense: choose a random number between  1 and 3
-	lucky: choose a random number between  7 and 10
+	lucky: choose a random number between  3 and 5
 }
 """
 

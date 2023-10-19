@@ -18,7 +18,7 @@ class OpenAI():
                 "content": str(user_input)
               }
             ],
-            temperature=0.6,
+            temperature=0.7,
             max_tokens=1024
         )
     return response
