@@ -52,13 +52,13 @@ class StartGame(Resource):
         try:
           return self.collect_data(answer, player_list)
         except Exception as e:
-            return { "error": "chat gpt did not respond in correct formart, try again please"}, 500
+          return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer }, 500
     
     def collect_data(self, answer: str, player_list: list):
         answer = answer.replace("\n", "")
         game = Game(
             game_id=re.search(r'\d{5}', answer, re.M).group(),
-            story = game.story + re.search(r'(?<=The\sQuest:)[\s\S]*', answer, re.M).group(),
+            story = re.search(r'(?<=The\sQuest:)[\s\S]*', answer, re.M).group(),
             status='started'
             )
 
