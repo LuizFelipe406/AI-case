@@ -1,9 +1,12 @@
 import re
+import random
 import json
+import math
 from flask_restful import Resource
 from open_ai.open_ai import OpenAI
 from database.database import db
 from database.models import Character, Game
+from rpg_basic_rules import lucky_by_role
 
 #  to be done:
 #   get lucky to be re-cauculated every round for each character
@@ -20,11 +23,16 @@ class PlayRoundService(Resource):
             return {'message': 'game already finished'}, 400
 
         characters: list[Character] = Character.query.filter(Character.game_id == game.game_id).all()
-        characters_list = [char.as_dict() for char in characters]
+        characters_list = []
+        for character in characters:
+            character.lucky = self.calculate_lucky(character)
+            characters_list.append(character.as_dict())
 
         initial_context = 'You are an RPG Master who will run a game, this is the first round of the game' if game.status == 'started' else 'You are an RPG Master who will be continuing a round of the game'
 
-        context_instructions = 'You need to develop the story of the first round of the RPG, this part will start with the title "The Story:", where players will encounter the boss for the first time and carry out an attack, every player will atack the boss once (except the healer who will only heal the characters after the boss attack and cant attack the boss) and the boss will atack only half of the total players numbers. Follow every one of this instructions before you proceed with an attack:' if game.status == 'started' else 'You are going to receive the user input about how he would like the story to continue, with that, you will create the story of this round based on the input and being creative, this part will start with the title "The Story:", be aware that this round must include an attack beetwen the players and the boss, every player must strike the boss once, and the boss can only attack half of the current alive players (except the healer who will only heal the characters after the boss attack and cant attack the boss)'
+        context_instructions = 'You need to develop the story of the first round of the RPG, this part will start with the title "The Story:", where players will encounter the boss for the first time and carry out an attack, every player will atack the boss once (except the healer who will only heal the characters after the boss attack and cant attack the boss) and the boss will atack only half of the total players numbers.' if game.status == 'started' else 'You are going to receive the user input about how he would like the story to continue, with that, you will create the story of this round based on the input and being creative, this part will start with the title "The Story:", be aware that this round must include an attack beetwen the players and the boss, every player must strike the boss once, and the boss can only attack half of the current alive players (except the healer who will only heal the characters after the boss attack and cant attack the boss)'
+
+        attack_instructions = self.calculate_attack(characters)
 
         context = f"""
           {initial_context}
@@ -50,13 +58,13 @@ class PlayRoundService(Resource):
 
           {context_instructions}
 
-          The rules of an attack are:
-          - you need to calculate the attack damage delt and the life remaining of the defender after each character attack
-          - the attack is calculated by this formula: life = (attack points of the attacker + lucky points of the attacker) - ((defense points of the defender + lucky points of the defender) / 2).
-          - the healer can only heal one player per round and the amount of heal given is heal + lucky.
+          Follow the instructions bellow to guide the attacks:
+          {attack_instructions}
+          - you need to calculate the life remaining of the defender after each character attack
+          - the healer can only heal one character per round.
           - the healer will only move after the boss attack is completed
-          - if a player gets a life less than zero, the life will stay at zero and should not be negative.
-          - a healer cannot revive a player, once his life gets to zero, he cannot heal that character anymore.
+          - if a character gets a life less than zero, the life will stay at zero and should not be negative.
+          - a healer cannot revive a character, once his life gets to zero, he cannot heal that character anymore.
           
           On Next Round/The End:
 
@@ -106,10 +114,7 @@ class PlayRoundService(Resource):
               character_in_db.type = character_dict["type"]
               character_in_db.name = character_dict["name"]
               character_in_db.life = character_dict["life"]
-              character_in_db.defense = character_dict["defense"]
               character_in_db.lucky = character_dict["lucky"]
-              character_in_db.attack = character_dict.get("attack", None)
-              character_in_db.heal = character_dict.get("heal", None)
         except Exception as e:
             raise Exception
 
@@ -123,3 +128,18 @@ class PlayRoundService(Resource):
             "answer": answer,
             "context_sent": context
         }
+    
+    def calculate_lucky(self, character: Character):
+        character_lucky_min = lucky_by_role[character.role][0]
+        character_lucky_max = lucky_by_role[character.role][1]
+        return random.randint(character_lucky_min, character_lucky_max)
+       
+
+    def calculate_attack(self, characters: list[Character]):
+        result = ""
+        for character in characters:
+          if character.role != "Healer" and character.life > 0:
+              result = result + f"- the character {character.name} will deal {character.attack  + character.lucky} damage and take {math.floor((character.defense + character.lucky) / 2)} less damage this round\n"
+          if character.role == "Healer" and character.life > 0:
+              result = result + f"- the character {character.name} will heal {character.heal + character.lucky} health points and take {math.floor((character.defense + character.lucky) / 2)} less damage this round\n"
+        return result

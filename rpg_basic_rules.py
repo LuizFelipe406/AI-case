@@ -52,3 +52,11 @@ Boss: {
 	lucky: random number between 1 and 3
 }
 """
+
+lucky_by_role = {
+  "Warrior": [1,3],
+  "Mage": [4,6],
+  "Assassin": [4,6],
+  "Healer": [3,5],
+  "Boss": [1,3]
+}
