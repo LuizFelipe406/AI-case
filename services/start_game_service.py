@@ -1,22 +1,17 @@
 import re
 import random
 import json
-from flask_restful import Resource
-from flask import request
+from sqlalchemy import delete
 from open_ai.open_ai import OpenAI
 from rpg_basic_rules import rpg_roles, rpg_boss
-from sqlalchemy import delete
 from database.database import db
 from database.models import Character, Game
 
-class StartGame(Resource):
-    def __init__(self):
+class StartGameService():
+  def __init__(self):
         self.open_ai = OpenAI()
-
-    def get(self):
-        data = request.get_json(force=True)
-        player_list = data.get('playerList', [])
-
+  
+  def start(self, player_list: list[str]):
         if len(player_list) > 4:
             return {"message": "Too many players, limit is 4"}, 400
 
@@ -54,7 +49,7 @@ class StartGame(Resource):
         except Exception as e:
           return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer }, 500
     
-    def collect_data(self, answer: str, player_list: list):
+  def collect_data(self, answer: str, player_list: list):
         answer = answer.replace("\n", "")
         game = Game(
             game_id=re.search(r'\d{5}', answer, re.M).group(),

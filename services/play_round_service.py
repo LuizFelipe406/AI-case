@@ -1,8 +1,6 @@
 import re
-import random
 import json
 from flask_restful import Resource
-from flask import request
 from open_ai.open_ai import OpenAI
 from database.database import db
 from database.models import Character, Game
@@ -12,14 +10,11 @@ from database.models import Character, Game
 #   give chat gpt how much damage each player shoud caus at the round insted of giving a formula
 
 
-class PlayRound(Resource):
+class PlayRoundService(Resource):
     def __init__(self):
         self.open_ai = OpenAI()
 
-    def get(self, game_id):
-        data = request.get_json(force=True)
-        user_input: str = data.get('input')
-
+    def play(self, game_id:str, user_input:str):
         game: Game = db.get_or_404(Game, game_id)
         if game.status == 'finished':
             return {'message': 'game already finished'}, 400

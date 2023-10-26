@@ -2,7 +2,7 @@ from flask import Flask
 from flask_restful import Api
 from database.database import db
 from database import Character, Game
-from controllers import StartGame, PlayRound
+from controllers import StartGameController, PlayRoundController
 
 app = Flask(__name__)
 
@@ -15,8 +15,8 @@ api = Api(app)
 with app.app_context():
     db.create_all()
 
-api.add_resource(StartGame, "/game/start")
-api.add_resource(PlayRound, "/game/play/<int:game_id>")
+api.add_resource(StartGameController, "/game/start")
+api.add_resource(PlayRoundController, "/game/play/<int:game_id>")
 
 if __name__ == '__main__':
     app.run(debug=True)
