@@ -1,4 +1,4 @@
-<h1>README para API Mestre de RPG</h1>
+<h1>API Mestre de RPG</h1>
 
 <section>
     <h2>Introdução</h2>
