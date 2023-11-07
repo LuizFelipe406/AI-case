@@ -7,7 +7,7 @@ class PlayRoundController(Resource):
     def __init__(self):
         self.service = PlayRoundService()
 
-    def get(self, game_id):
+    def post(self, game_id):
         data = request.get_json(force=True)
         user_input: str = data.get('input')
 

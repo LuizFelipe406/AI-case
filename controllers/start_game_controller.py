@@ -6,7 +6,7 @@ class StartGameController(Resource):
     def __init__(self):
         self.service = StartGameService()
 
-    def get(self):
+    def post(self):
         data = request.get_json(force=True)
         player_list = data.get('playerList', [])
 
