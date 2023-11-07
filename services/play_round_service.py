@@ -8,11 +8,6 @@ from database.database import db
 from database.models import Character, Game
 from rpg_basic_rules import lucky_by_role
 
-#  to be done:
-#   get lucky to be re-cauculated every round for each character
-#   give chat gpt how much damage each player shoud caus at the round insted of giving a formula
-
-
 class PlayRoundService(Resource):
     def __init__(self):
         self.open_ai = OpenAI()
@@ -90,11 +85,11 @@ class PlayRoundService(Resource):
         response = self.open_ai.generate_answer(context, user_input)
         answer = response.choices[0].message.content
         try:
-          return self.collect_data(answer, game, context)
+          return self.collect_data(answer, game)
         except Exception as e:
-            return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer, "context": context}, 500
+            return { "error": "chat gpt did not respond in correct formart, try again please" }, 500
     
-    def collect_data(self, answer: str, game: Game, context):
+    def collect_data(self, answer: str, game: Game):
         answer = answer.replace("\n", "")
         answer_ending = re.match(r'(?<=The\sEnd:)[\s\S]*(?=The\sCharacters:)', answer, re.M)
         answer_round_story = re.search(r'(?<=The\sStory:)[\s\S]*(?=On\sNext\sRound:)', answer, re.M).group()
@@ -124,9 +119,7 @@ class PlayRoundService(Resource):
             "characters": characters,
             "full_story": game.story,
             "round_story": answer_round_story,
-            "on_the_next_round": re.search(r'(?<=On\sNext\sRound:)[\s\S]*(?=The\sCharacters:)', answer, re.M).group() if game.status != 'finished' else 'Game Over.',
-            "answer": answer,
-            "context_sent": context
+            "on_the_next_round": re.search(r'(?<=On\sNext\sRound:)[\s\S]*(?=The\sCharacters:)', answer, re.M).group() if game.status != 'finished' else 'Game Over.'
         }
     
     def calculate_lucky(self, character: Character):
