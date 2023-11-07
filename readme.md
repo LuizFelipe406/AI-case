@@ -10,16 +10,13 @@
     <h3>Iniciando um Jogo</h3>
     <p>Para começar um novo jogo de RPG, você deve fazer uma requisição POST para a seguinte rota:</p>
     <pre><code>POST /game/start</code></pre>
-    
     <h4>Requisição</h4>
     <p>No corpo da sua requisição, inclua um JSON com a seguinte estrutura:</p>
     <pre><code>{
   "playerList": ["NomeDoJogador1", "NomeDoJogador2", "NomeDoJogador3", "NomeDoJogador4"]
 }</code></pre>
-    
     <h4>Restrições</h4>
     <p><code>playerList</code> deve ser um array contendo de 1 a 4 nomes de jogadores.</p>
-    
     <h4>Resposta</h4>
     <p>Se a requisição for bem-sucedida, você receberá uma resposta com status <code>200 OK</code> e um corpo de resposta contendo:</p>
     <ul>
@@ -27,17 +24,14 @@
         <li><code>characters</code>: Um array contendo cada personagem do RPG associado aos jogadores fornecidos.</li>
         <li><code>story</code>: A história inicial do RPG.</li>
     </ul>
-
     <h3>Jogando uma Partida</h3>
     <p>Para jogar e avançar na história da sua partida de RPG, envie uma requisição POST para a seguinte rota:</p>
     <pre><code>POST /game/play/&lt;int:game_id&gt;</code></pre>
-    
     <h4>Requisição</h4>
     <p>Inclua no corpo da requisição um JSON com a seguinte estrutura:</p>
     <pre><code>{
   "input": "Texto com as instruções ou ações desejadas para a próxima parte do RPG"
 }</code></pre>
-    
     <h4>Resposta</h4>
     <p>A resposta bem-sucedida retorna status <code>200 OK</code> com um corpo de resposta contendo:</p>
     <ul>
@@ -47,7 +41,6 @@
         <li><code>round_story</code>: A história que aconteceu especificamente na rodada atual.</li>
         <li><code>on_the_next_round</code>: Sugestões do que você pode incluir no seu próximo input para continuar a partida de RPG.</li>
     </ul>
-
     <h4>Erros</h4>
     <p>Em caso de erro, por exemplo, se o GPT não retornar as informações no formato esperado, a rota pode retornar status <code>500 Internal Server Error</code> acompanhado de uma mensagem explicativa.</p>
 </section>
@@ -66,9 +59,4 @@
         <li><code>DB</code>: O container responsável por gerenciar o banco de dados.</li>
         <li><code>Aplicação</code>: O container onde a aplicação de fato será executada.</li>
     </ul>
-</section>
-
-<section>
-    <h2>Suporte</h2>
-    <p>Para dúvidas ou suporte técnico, por favor, abra uma issue no repositório do GitHub associado a esta API.</p>
 </section>
