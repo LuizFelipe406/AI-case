@@ -12,9 +12,6 @@ class StartGameService():
         self.open_ai = OpenAI()
   
   def start(self, player_list: list[str]):
-        if len(player_list) > 4:
-            return {"message": "Too many players, limit is 4"}, 400
-
         context = f"""
           You are an RPG Master who will run a game, this is the start of the game,
           your answer must start with the Game ID following this rules:

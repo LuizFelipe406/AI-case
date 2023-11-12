@@ -10,4 +10,7 @@ class StartGameController(Resource):
         data = request.get_json(force=True)
         player_list = data.get('playerList', [])
 
+        if len(player_list) > 4:
+            return {"message": "Too many players, limit is 4"}, 400
+
         return self.service.start(player_list)
