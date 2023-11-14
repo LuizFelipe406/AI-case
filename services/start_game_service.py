@@ -14,29 +14,44 @@ class StartGameService():
   def start(self, player_list: list[str]):
         context = f"""
           You are an RPG Master who will run a game, this is the start of the game,
-          your answer must start with the Game ID following this rules:
+          Your answer will have 3 topics:
+            - Game ID
+            - The Characters
+            - The Quest
+          
+          
+          Game ID:
             - The answer will start with: Game ID:
             - The ID will be {str(random.randint(10000, 99999))}
 
-          the rpg roles are:
+          for context, the rpg roles are:
           {rpg_roles}
 
+          The Characters:
           you will be given a list of names and must create the rpg characters for each player and return each one of them in a Javascript object, following this rules:
             - name list order needs to be reordered randomly
-            - every player must have  a different role, of which must be choosen randomly
+            - every player must have a different role, of which must be choosen randomly
             - players can have the same type, it shouldn't be unique, but must be choosen randomly
-            - this part of the answer will start with the title: "Creating RPG Characters:"
             - you must generate a medieval last name for each character that matches his role, be creative here and increse the temperature of this part
             - you must choose his stats of attack, life, defense and lucky between the values determined in each class
-            - each character stats and name must be displayed like a Javascript object
-            - all the quotation marks must be single quotes
+            - each character stats and name must be displayed like a Javascript object, exemple:
+            {{
+	            "role": "xxxx",
+              "type": "xxxx",
+	            "name": "xxxx",
+              "attack": xxxx,
+	            "life": xxxx,
+	            "defense": xxxx,
+	            "lucky": xxxx
+            }}  
 
           next, you will generate the boss they will face, following the rules:
             - This part of the anwser will start with: "The Boss:"
-            - the anwser will show each character in a JSON format
+            - must be displayed like a Javascript object
           the boss role are:
           {rpg_boss}
 
+          The Quest:
           Finally, you will create the scene where the battle will take place, explaining why they are fighting and giving a brief summary of the context, this part will start with: 'The Quest:'""
 """
         response = self.open_ai.generate_answer(context, player_list)
@@ -44,10 +59,10 @@ class StartGameService():
         try:
           return self.collect_data(answer, player_list)
         except Exception as e:
-          return { "error": "chat gpt did not respond in correct formart, try again please" }, 500
+          return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer.replace("\n", ""), "error": str(e)}, 500
     
   def collect_data(self, answer: str, player_list: list):
-        answer = answer.replace("\n", "")
+        answer = answer.replace("\n", "").replace("\t", "")
         game = Game(
             game_id=re.search(r'\d{5}', answer, re.M).group(),
             story = re.search(r'(?<=The\sQuest:)[\s\S]*', answer, re.M).group(),
@@ -56,7 +71,7 @@ class StartGameService():
 
         db.session.add(game)
         db.session.commit()
-        
+
         try:
           characters: list[str] = re.findall(r'{[\s\S]*?}', answer, re.M)
           for i in range(len(player_list) + 1):
@@ -74,11 +89,11 @@ class StartGameService():
               )
               db.session.add(character_model)
         except Exception as e:
-            db.session.delete(game)
             db.session.execute(
                 delete(Character).where(Character.game_id == game.game_id)
             )
-            raise Exception
+            db.session.delete(game)
+            raise e
 
         db.session.commit()
         return {

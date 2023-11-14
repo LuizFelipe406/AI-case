@@ -25,8 +25,7 @@ class PlayRoundService(Resource):
 
         initial_context = 'You are an RPG Master who will run a game, this is the first round of the game' if game.status == 'started' else 'You are an RPG Master who will be continuing a round of the game'
 
-        context_instructions = 'You need to develop the story of the first round of the RPG, this part will start with the title "The Story:", where players will encounter the boss for the first time and carry out an attack, every player will atack the boss once (except the healer who will only heal the characters after the boss attack and cant attack the boss) and the boss will atack only half of the total players numbers.' if game.status == 'started' else 'You are going to receive the user input about how he would like the story to continue, with that, you will create the story of this round based on the input and being creative, this part will start with the title "The Story:", be aware that this round must include an attack beetwen the players and the boss, every player must strike the boss once, and the boss can only attack half of the current alive players (except the healer who will only heal the characters after the boss attack and cant attack the boss)'
-
+        context_instructions = 'You need to develop the story of the first round of the RPG, this part will start with the title "The Story:", where players will encounter the boss for the first time and carry out an attack, develop some story for how the attack will go, creating a strategy between the players.' if game.status == 'started' else 'You are going to receive the user input about how he would like the story to continue, with that, you will create the story of this round based on the input and being creative, this part will start with the title "The Story:", develop some story for how the attack will go, creating a strategy between the players.'
         attack_instructions = self.calculate_attack(characters)
 
         context = f"""
@@ -52,12 +51,13 @@ class PlayRoundService(Resource):
           The Story:
 
           {context_instructions}
+          - this part should not repeat the context story given, only create the new story for the round
 
           Follow the instructions bellow to guide the attacks:
           {attack_instructions}
+          - the order of the attack will be 1-the warrior, mage, assassin, 2-the boss, 3-the healer
           - you need to calculate the life remaining of the defender after each character attack
-          - the healer can only heal one character per round.
-          - the healer will only move after the boss attack is completed
+          - the healer can only heal one player per round.
           - if a character gets a life less than zero, the life will stay at zero and should not be negative.
           - a healer cannot revive a character, once his life gets to zero, he cannot heal that character anymore.
           
@@ -69,17 +69,17 @@ class PlayRoundService(Resource):
 
           The Characters:
 
-          At the end, you will return all current attributes of every character like a Javascript object each, starting with one silge curly brackets for each, this part will start with the title The Characters:
+          At the end, you will return all current attributes of every character, make sure to calculate the life decreased of each character that suffer an attack, like a Javascript object each, starting with one silge curly brackets for each, this part will start with the title The Characters:
           example:
-           Warrior: {{
-              id: xxxx,
-	            role: xxxx,
-              type: xxxx,
-	            name: xxxx,
-              attack: xxxx,
-	            life: xxxx,
-	            defense: xxxx,
-	            lucky: xxxx
+           {{
+              "id": xxxx,
+	          "role": "xxxx",
+              "type": "xxxx",
+	          "name": "xxxx",
+              "attack": xxxx,
+	          "life": xxxx,
+	          "defense": xxxx,
+	          "lucky": xxxx
             }}  
 """
         response = self.open_ai.generate_answer(context, user_input)
@@ -87,7 +87,7 @@ class PlayRoundService(Resource):
         try:
           return self.collect_data(answer, game)
         except Exception as e:
-            return { "error": "chat gpt did not respond in correct formart, try again please" }, 500
+            return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer.replace("\n", "") }, 500
     
     def collect_data(self, answer: str, game: Game):
         answer = answer.replace("\n", "")
@@ -119,7 +119,8 @@ class PlayRoundService(Resource):
             "characters": characters,
             "full_story": game.story,
             "round_story": answer_round_story,
-            "on_the_next_round": re.search(r'(?<=On\sNext\sRound:)[\s\S]*(?=The\sCharacters:)', answer, re.M).group() if game.status != 'finished' else 'Game Over.'
+            "on_the_next_round": re.search(r'(?<=On\sNext\sRound:)[\s\S]*(?=The\sCharacters:)', answer, re.M).group() if game.status != 'finished' else 'Game Over.',
+            "full_answer": answer
         }
     
     def calculate_lucky(self, character: Character):
@@ -132,7 +133,7 @@ class PlayRoundService(Resource):
         result = ""
         for character in characters:
           if character.role != "Healer" and character.life > 0:
-              result = result + f"- the character {character.name} will deal {character.attack  + character.lucky} damage and take {math.floor((character.defense + character.lucky) / 2)} less damage this round\n"
+              result = result + f"- the character {character.name} will deal {character.attack  + character.lucky} damage this round\n"
           if character.role == "Healer" and character.life > 0:
-              result = result + f"- the character {character.name} will heal {character.heal + character.lucky} health points and take {math.floor((character.defense + character.lucky) / 2)} less damage this round\n"
+              result = result + f"- the character {character.name} will heal {character.heal + character.lucky} health points this round\n"
         return result
