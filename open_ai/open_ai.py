@@ -7,7 +7,7 @@ openai.api_key = os.getenv("OPENAI_NEW_API_KEY")
 class OpenAI():
   def generate_answer(self, context, user_input):
     response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=[
               {
                 "role": "system",

@@ -1,7 +1,6 @@
 import re
 import random
 import json
-import math
 from flask_restful import Resource
 from open_ai.open_ai import OpenAI
 from database.database import db
@@ -25,7 +24,8 @@ class PlayRoundService(Resource):
 
         initial_context = 'You are an RPG Master who will run a game, this is the first round of the game' if game.status == 'started' else 'You are an RPG Master who will be continuing a round of the game'
 
-        context_instructions = 'You need to develop the story of the first round of the RPG, this part will start with the title "The Story:", where players will encounter the boss for the first time and carry out an attack, develop some story for how the attack will go, creating a strategy between the players.' if game.status == 'started' else 'You are going to receive the user input about how he would like the story to continue, with that, you will create the story of this round based on the input and being creative, this part will start with the title "The Story:", develop some story for how the attack will go, creating a strategy between the players.'
+        context_instructions = 'You need to develop the story of the first round of the RPG, this part will start with the title "The Story:", where players will encounter the boss for the first time and carry out an attack, develop some story for how the attack will go, creating a strategy between the players.' if game.status == 'started' else 'You are going to receive the user input about how he would like the story to continue, with that, you will create the story of this round based on the input and being creative, important: the rules can be broken by the user Input, prioritize the user choices for the story, this part will start with the title "The Story:"'
+
         attack_instructions = self.calculate_attack(characters)
 
         context = f"""
@@ -55,9 +55,10 @@ class PlayRoundService(Resource):
 
           Follow the instructions bellow to guide the attacks:
           {attack_instructions}
-          - the order of the attack will be 1-the warrior, mage, assassin, 2-the boss, 3-the healer
+          - the order of the attack will be 1-the attack players, 2-the boss, 3-the healer
           - you need to calculate the life remaining of the defender after each character attack
           - the healer can only heal one player per round.
+          - the boss will damage half of the current alive players
           - if a character gets a life less than zero, the life will stay at zero and should not be negative.
           - a healer cannot revive a character, once his life gets to zero, he cannot heal that character anymore.
           
@@ -87,15 +88,15 @@ class PlayRoundService(Resource):
         try:
           return self.collect_data(answer, game)
         except Exception as e:
-            return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer.replace("\n", "") }, 500
+            return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer.replace("\n", ""), "error_message": str(e) }, 500
     
     def collect_data(self, answer: str, game: Game):
         answer = answer.replace("\n", "")
         answer_ending = re.match(r'(?<=The\sEnd:)[\s\S]*(?=The\sCharacters:)', answer, re.M)
-        answer_round_story = re.search(r'(?<=The\sStory:)[\s\S]*(?=On\sNext\sRound:)', answer, re.M).group()
+        answer_round_story = re.search(r'(?<=The\sStory:)[\s\S]*(?=On\sNext\sRound:|The\sEnd:)', answer, re.M).group()
 
         game.status = 'on going' if answer_ending is None else 'finished'
-        game.story = game.story + answer_round_story
+        game.story = game.story + "\n" + answer_round_story
         
         if game.status == 'finished':
             game.story = game.story + answer_ending.group()
@@ -111,8 +112,7 @@ class PlayRoundService(Resource):
               character_in_db.life = character_dict["life"]
               character_in_db.lucky = character_dict["lucky"]
         except Exception as e:
-            raise Exception
-
+            raise e
         db.session.commit()
         return {
             "game_id": game.game_id,
