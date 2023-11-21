@@ -55,6 +55,8 @@ class PlayRoundService(Resource):
 
           Follow the instructions bellow to guide the attacks:
           {attack_instructions}
+          - the life is reduced according to the damage minus the defense of the person being attacked
+          - if the defense is greater than the damage, the life is not changed
           - the order of the attack will be 1-the attack players, 2-the boss, 3-the healer
           - you need to calculate the life remaining of the defender after each character attack
           - the healer can only heal one player per round.
@@ -70,14 +72,14 @@ class PlayRoundService(Resource):
 
           The Characters:
 
-          At the end, you will return all current attributes of every character, make sure to calculate the life decreased of each character that suffer an attack, like a Javascript object each, starting with one silge curly brackets for each, this part will start with the title The Characters:
+          At the end, you will return all current attributes of every character, make sure to calculate the life decreased of each character that suffer an attack, like a JSON each, starting with one silge curly brackets for each, this part will start with the title The Characters:
           example:
            {{
               "id": xxxx,
 	          "role": "xxxx",
               "type": "xxxx",
 	          "name": "xxxx",
-              "attack": xxxx,
+              "action": xxxx,
 	          "life": xxxx,
 	          "defense": xxxx,
 	          "lucky": xxxx
@@ -132,8 +134,6 @@ class PlayRoundService(Resource):
     def calculate_attack(self, characters: list[Character]):
         result = ""
         for character in characters:
-          if character.role != "Healer" and character.life > 0:
-              result = result + f"- the character {character.name} will deal {character.attack  + character.lucky} damage this round\n"
-          if character.role == "Healer" and character.life > 0:
-              result = result + f"- the character {character.name} will heal {character.heal + character.lucky} health points this round\n"
+          if character.life > 0:
+              result = result + f"- the character {character.name} will {'deal' if character.role != 'Healer' else 'give'} {character.action  + character.lucky} {'damage' if character.role != 'Healer' else 'health points'} this round\n"
         return result

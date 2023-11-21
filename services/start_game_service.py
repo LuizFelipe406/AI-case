@@ -12,6 +12,7 @@ class StartGameService():
         self.open_ai = OpenAI()
   
   def start(self, player_list: list[str]):
+        random.shuffle(player_list)
         context = f"""
           You are an RPG Master who will run a game, this is the start of the game,
           Your answer will have 3 topics:
@@ -33,13 +34,13 @@ class StartGameService():
             - every player must have a different role, of which must be choosen randomly
             - players can have the same type, it shouldn't be unique, but must be choosen randomly
             - you must generate a medieval last name for each character that matches his role, be creative here and increse the temperature of this part
-            - you must choose his stats of attack, life, defense and lucky between the values determined in each class
+            - you must choose his stats of action, life, defense and lucky between the values determined in each class
             - each character stats and name must be displayed like a Javascript object, exemple:
             {{
 	            "role": "xxxx",
               "type": "xxxx",
 	            "name": "xxxx",
-              "attack": xxxx,
+              "action": xxxx,
 	            "life": xxxx,
 	            "defense": xxxx,
 	            "lucky": xxxx
@@ -84,8 +85,7 @@ class StartGameService():
                 life=character_dict["life"],
                 defense=character_dict["defense"],
                 lucky=character_dict["lucky"],
-                attack=character_dict.get("attack", None),
-                heal=character_dict.get("heal", None),
+                action=character_dict["action"]
               )
               db.session.add(character_model)
         except Exception as e:
