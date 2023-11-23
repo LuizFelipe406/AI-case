@@ -24,7 +24,7 @@ class PlayRoundService(Resource):
 
         initial_context = 'You are an RPG Master who will run a game, this is the first round of the game' if game.status == 'started' else 'You are an RPG Master who will be continuing a round of the game'
 
-        context_instructions = 'You need to develop the story of the first round of the RPG, this part will start with the title "The Story:", where players will encounter the boss for the first time and carry out an attack, develop some story for how the attack will go, creating a strategy between the players.' if game.status == 'started' else 'You are going to receive the user input about how he would like the story to continue, with that, you will create the story of this round based on the input and being creative, important: the rules can be broken by the user Input, prioritize the user choices for the story, this part will start with the title "The Story:"'
+        context_instructions = 'You need to develop the story of the first round of the RPG, this part will start with the title "The Story:", where players will encounter the boss for the first time and carry out an attack, develop some story for how the attack will go, creating a strategy between the players.' if game.status == 'started' else 'You will receive input from the user on how the story of this round will develop, important, you need to follow what was said and shape the story around it, the rules can and should be broken by Input, the story of the round needs to involve more than just the attack, be creative, repeat the input if necessary, this part will start with the title "The Story:"'
 
         attack_instructions = self.calculate_attack(characters)
 
@@ -96,6 +96,7 @@ class PlayRoundService(Resource):
         answer = answer.replace("\n", "")
         answer_ending = re.match(r'(?<=The\sEnd:)[\s\S]*(?=The\sCharacters:)', answer, re.M)
         answer_round_story = re.search(r'(?<=The\sStory:)[\s\S]*(?=On\sNext\sRound:|The\sEnd:)', answer, re.M).group()
+        next_round_story = re.match(r'(?<=On\sNext\sRound:)[\s\S]*(?=The\sCharacters:)', answer, re.M)
 
         game.status = 'on going' if answer_ending is None else 'finished'
         game.story = game.story + "\n" + answer_round_story
@@ -121,7 +122,7 @@ class PlayRoundService(Resource):
             "characters": characters,
             "full_story": game.story,
             "round_story": answer_round_story,
-            "on_the_next_round": re.search(r'(?<=On\sNext\sRound:)[\s\S]*(?=The\sCharacters:)', answer, re.M).group() if game.status != 'finished' else 'Game Over.',
+            "on_the_next_round": 'Game Over' if game.status == 'finished' else next_round_story.group(),
             "full_answer": answer
         }
     

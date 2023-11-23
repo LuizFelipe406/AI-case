@@ -37,7 +37,7 @@ Healer: {
 	action: choose a random number between  2 and 4
 	life: choose a random number between  25 and 30
 	defense: choose a random number between  1 and 3
-	lucky: choose a random number between  3 and 5
+	lucky: choose a random number between  3 and 4
 }
 """
 
@@ -57,6 +57,6 @@ lucky_by_role = {
   "Warrior": [1,3],
   "Mage": [4,6],
   "Assassin": [4,6],
-  "Healer": [3,5],
+  "Healer": [3,4],
   "Boss": [1,3]
 }
