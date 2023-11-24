@@ -49,9 +49,8 @@ class PlayRoundService(Resource):
             - The ID will be {game.game_id}
 
           The Story:
-
-          {context_instructions}
           - this part should not repeat the context story given, only create the new story for the round
+          {context_instructions}
 
           Follow the instructions bellow to guide the attacks:
           {attack_instructions}
@@ -72,7 +71,7 @@ class PlayRoundService(Resource):
 
           The Characters:
 
-          At the end, you will return all current attributes of every character, make sure to calculate the life decreased of each character that suffer an attack, like a JSON each, starting with one silge curly brackets for each, this part will start with the title The Characters:
+          At the end, you will return all current attributes of every character, make sure to return the proper health attribute after de battle, like a JSON each, starting with one silge curly brackets for each, this part will start with the title The Characters:
           example:
            {{
               "id": xxxx,
@@ -88,15 +87,16 @@ class PlayRoundService(Resource):
         response = self.open_ai.generate_answer(context, user_input)
         answer = response.choices[0].message.content
         try:
-          return self.collect_data(answer, game)
+            return self.collect_data(answer, game)
         except Exception as e:
+            print(e)
             return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer.replace("\n", ""), "error_message": str(e) }, 500
     
     def collect_data(self, answer: str, game: Game):
         answer = answer.replace("\n", "")
-        answer_ending = re.match(r'(?<=The\sEnd:)[\s\S]*(?=The\sCharacters:)', answer, re.M)
+        answer_ending = re.search(r'(?<=The\sEnd:)[\s\S]*(?=The\sCharacters:)', answer, re.M)
         answer_round_story = re.search(r'(?<=The\sStory:)[\s\S]*(?=On\sNext\sRound:|The\sEnd:)', answer, re.M).group()
-        next_round_story = re.match(r'(?<=On\sNext\sRound:)[\s\S]*(?=The\sCharacters:)', answer, re.M)
+        next_round_story = re.search(r'(?<=On\sNext\sRound:)[\s\S]*(?=The\sCharacters:)', answer, re.M)
 
         game.status = 'on going' if answer_ending is None else 'finished'
         game.story = game.story + "\n" + answer_round_story
@@ -122,7 +122,8 @@ class PlayRoundService(Resource):
             "characters": characters,
             "full_story": game.story,
             "round_story": answer_round_story,
-            "on_the_next_round": 'Game Over' if game.status == 'finished' else next_round_story.group(),
+            "on_the_next_round": 'Game Over' if next_round_story is None else next_round_story.group(),
+            "ending": 'Game is going' if answer_ending is None else answer_ending.group(),
             "full_answer": answer
         }
     
@@ -133,8 +134,13 @@ class PlayRoundService(Resource):
        
 
     def calculate_attack(self, characters: list[Character]):
-        result = ""
-        for character in characters:
-          if character.life > 0:
-              result = result + f"- the character {character.name} will {'deal' if character.role != 'Healer' else 'give'} {character.action  + character.lucky} {'damage' if character.role != 'Healer' else 'health points'} this round\n"
+        result = "the order of the attack will be: \n"
+        random.shuffle(characters)
+
+        for index, character in enumerate(characters):
+            if character.life > 0:
+                action_word = 'deal' if character.role != 'Healer' else 'give'
+                points_word = 'damage' if character.role != 'Healer' else 'health points'
+                points = character.action + character.lucky
+                result += f"{index + 1}- the character {character.name} will {action_word} {points} {points_word} this round\n"
         return result
