@@ -47,7 +47,7 @@ Boss: {
 	type: generate a boss type
 	name: generate a name based on the boss type
 	life: random number between 80 and 100
-	action: random number between 4 and 6
+	action: random number between 6 and 8
 	defense: random number between 4 and 6
 	lucky: random number between 1 and 3
 }

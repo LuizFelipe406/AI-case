@@ -8,7 +8,7 @@ class PlayRoundController(Resource):
         self.service = PlayRoundService()
 
     def post(self, game_id):
-        data = request.get_json(force=True)
-        user_input: str = data.get('input')
+        data = request.get_json(silent=True)
 
+        user_input = "" if data is None else data.get('input', "")
         return self.service.play(game_id, user_input)
