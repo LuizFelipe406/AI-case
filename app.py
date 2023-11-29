@@ -3,7 +3,7 @@ from flask import Flask
 from flask_restful import Api
 from database.database import db
 from database import Character, Game
-from controllers import StartGameController, PlayRoundController
+from controllers import StartGameController, PlayRoundController, GameStoryController
 
 db_user = os.getenv("DB_USER")
 db_pass = os.getenv("DB_PASS")
@@ -22,6 +22,7 @@ with app.app_context():
 
 api.add_resource(StartGameController, "/game/start")
 api.add_resource(PlayRoundController, "/game/play/<int:game_id>")
+api.add_resource(GameStoryController, "/game/story/<int:game_id>")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

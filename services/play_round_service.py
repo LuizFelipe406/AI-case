@@ -1,14 +1,14 @@
 import re
 import random
 import json
-from flask_restful import Resource
 from open_ai.open_ai import OpenAI
 from database.database import db
 from database.models import Character, Game
 from rpg_basic_rules import lucky_by_role
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
-class PlayRoundService(Resource):
+class PlayRoundService():
     def __init__(self):
         self.open_ai = OpenAI()
 
@@ -70,7 +70,9 @@ class PlayRoundService(Resource):
           - Healers can heal one player per round.
           - The boss damages half of the current alive players.
           - A character's life stays at zero once it reaches it; healers cannot revive.
+          - <IMPORTANT> After every single attack you must check if the boss or character died (life < 0 or life = 0).</IMPORTANT>
           - Announce when a character dies.
+          - if the boss dies, you will ceese the attack and develop the story to its endind.
           
           On Next Round/The End:
 
@@ -96,12 +98,12 @@ class PlayRoundService(Resource):
         response = self.open_ai.generate_answer(context, user_input)
         answer = response.choices[0].message.content
         try:
-            return self.collect_data(answer, game, user_input)
+            return self.collect_data(answer, game.game_id)
         except Exception as e:
             print(e)
             return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer.replace("\n", ""), "error_message": str(e) }, 500
     
-    def collect_data(self, answer: str, game: Game, user_input):
+    def collect_data(self, answer: str, game_id: int):
         answer = answer.replace("\n", "")
         pattern_ending = re.compile(r'(?<=The\sEnd:)[\s\S]*(?=The\sCharacters:)', re.M)
         pattern_round_story = re.compile(r'(?<=The\sStory:)[\s\S]*(?=On\sNext\sRound:|The\sEnd:)', re.M)
@@ -112,16 +114,19 @@ class PlayRoundService(Resource):
         answer_round_story = pattern_round_story.search(answer).group()
         next_round_story = pattern_next_round.search(answer)
 
-        game.status = 'finished' if answer_ending else 'on going'
-        game_story_updates = [game.story, answer_round_story]
-        if game.status == 'finished':
-            game_story_updates.append(answer_ending.group())
-
-        game.story += "\n".join(game_story_updates)
-
         characters_data = []
         with Session(db.engine) as session:
             try:
+                game_in_session = session.query(Game).get(game_id)
+
+                game_in_session.status = 'finished' if answer_ending else 'on going'
+                game_story_updates = [game_in_session.story, answer_round_story]
+
+                if game_in_session.status == 'finished':
+                    game_story_updates.append(answer_ending.group())
+
+                game_in_session.story = "\n".join(game_story_updates)
+
                 characters = pattern_characters.findall(answer)
                 for character_json in characters:
                     character_data = json.loads(character_json)
@@ -129,20 +134,18 @@ class PlayRoundService(Resource):
                     for attr, value in character_data.items():
                         setattr(character_in_db, attr, value)
                     characters_data.append(character_data)
+
                 session.commit()
             except Exception as e:
                 session.rollback()
                 print(f"Error updating characters: {e}")
 
         return {
-            "game_id": game.game_id,
-            "characters": characters_data,
-            "full_story": game.story,
+            "game_id": game_id,
             "round_story": answer_round_story,
             "on_the_next_round": 'Game Over' if next_round_story is None else next_round_story.group(),
             "ending": 'Game is going' if answer_ending is None else answer_ending.group(),
-            "full_answer": answer,
-            "user_input_sent": user_input
+            "characters": characters_data
         }
     
     def calculate_lucky(self, character: Character):

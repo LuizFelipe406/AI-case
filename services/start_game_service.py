@@ -102,6 +102,6 @@ class StartGameService():
 
     return {
         "game_id": game_id,
-        "characters": characters_data,
-        "story": story
+        "story": story,
+        "characters": characters_data
     }
