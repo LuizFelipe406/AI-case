@@ -6,6 +6,7 @@ from open_ai.open_ai import OpenAI
 from rpg_basic_rules import rpg_roles, rpg_boss
 from database.database import db
 from database.models import Character, Game
+from sqlalchemy.orm import Session
 
 class StartGameService():
   def __init__(self):
@@ -63,41 +64,44 @@ class StartGameService():
           return { "error": "chat gpt did not respond in correct formart, try again please", "answer": answer.replace("\n", ""), "error": str(e)}, 500
     
   def collect_data(self, answer: str, player_list: list):
-        answer = answer.replace("\n", "").replace("\t", "")
-        game = Game(
-            game_id=re.search(r'\d{5}', answer, re.M).group(),
-            story = re.search(r'(?<=The\sQuest:)[\s\S]*', answer, re.M).group(),
-            status='started'
-            )
+    answer = answer.replace("\n", "").replace("\t", "")
+    game_id = re.compile(r'\d{5}').search(answer).group()
+    story = re.compile(r'(?<=The\sQuest:)[\s\S]*').search(answer).group()
 
-        db.session.add(game)
-        db.session.commit()
+    characters_data = re.compile(r'{[\s\S]*?}', re.M).findall(answer)
 
-        try:
-          characters: list[str] = re.findall(r'{[\s\S]*?}', answer, re.M)
-          for i in range(len(player_list) + 1):
-              character_dict = json.loads(characters[i])
-              character_model = Character(
-                game_id=game.game_id,
-                role=character_dict["role"],
-                type=character_dict["type"],
-                name=character_dict["name"],
-                life=character_dict["life"],
-                defense=character_dict["defense"],
-                lucky=character_dict["lucky"],
-                action=character_dict["action"]
+    with Session(db.engine) as session:
+      try:
+          game = Game(game_id=game_id, story=story, status='started')
+          session.add(game)
+          game_id_copy = game.game_id
+
+          session.commit()
+
+          for character_json in characters_data:
+              character_dict = json.loads(character_json)
+              character = Character(
+                  game_id=game_id_copy,
+                  role=character_dict["role"],
+                  type=character_dict["type"],
+                  name=character_dict["name"],
+                  life=character_dict["life"],
+                  defense=character_dict["defense"],
+                  lucky=character_dict["lucky"],
+                  action=character_dict["action"]
               )
-              db.session.add(character_model)
-        except Exception as e:
-            db.session.execute(
-                delete(Character).where(Character.game_id == game.game_id)
-            )
-            db.session.delete(game)
-            raise e
+              session.add(character)
 
-        db.session.commit()
-        return {
-            "game_id": game.game_id,
-            "characters": characters,
-            "story": game.story
-        }
+          session.commit()
+      except Exception as e:
+          session.execute(delete(Character).where(Character.game_id == game_id_copy))
+          session.delete(game)
+          session.rollback()
+          print(f"Unexpected error: {e}")
+          raise
+
+    return {
+        "game_id": game_id,
+        "characters": characters_data,
+        "story": story
+    }

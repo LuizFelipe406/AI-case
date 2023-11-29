@@ -29,6 +29,7 @@
     <pre><code>POST /game/play/&lt;int:game_id&gt;</code></pre>
     <h4>Requisição</h4>
     <p>Inclua no corpo da requisição um JSON com a seguinte estrutura:</p>
+    <h4>Caso essa seja a primeira rodada da partida, não é necessário enviar nenhum Input.</h4>
     <pre><code>{
   "input": "Texto com as instruções ou ações desejadas para a próxima parte do RPG"
 }</code></pre>
