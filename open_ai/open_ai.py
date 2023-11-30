@@ -2,7 +2,7 @@ import os
 
 import openai
 
-openai.api_key = os.getenv("OPENAI_TEST_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class OpenAI():
   def generate_answer(self, context, user_input):
