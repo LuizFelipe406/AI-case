@@ -71,4 +71,6 @@
         <li><code>DB</code>: O container responsável por gerenciar o banco de dados.</li>
         <li><code>Aplicação</code>: O container onde a aplicação de fato será executada.</li>
     </ul>
+    <p>É necessário criar um arquivo .env na raiz do projeto contendo a sua chave da Open AI, no seguinte formato:</p>
+    <code>OPENAI_API_KEY</code>
 </section>
