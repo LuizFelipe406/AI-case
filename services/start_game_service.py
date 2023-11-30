@@ -69,7 +69,7 @@ class StartGameService():
     story = re.compile(r'(?<=The\sQuest:)[\s\S]*').search(answer).group()
 
     characters_data = re.compile(r'{[\s\S]*?}', re.M).findall(answer)
-
+    characters_list = []
     with Session(db.engine) as session:
       try:
           game = Game(game_id=game_id, story=story, status='started')
@@ -91,6 +91,7 @@ class StartGameService():
                   action=character_dict["action"]
               )
               session.add(character)
+              characters_list.append(character.as_dict())
 
           session.commit()
       except Exception as e:
@@ -103,5 +104,5 @@ class StartGameService():
     return {
         "game_id": game_id,
         "story": story,
-        "characters": characters_data
+        "characters": characters_list
     }

@@ -33,6 +33,7 @@ class PlayRoundService():
         ) if user_input == "" else (
             "- When receiving user input, start with 'The Story:' and use the input to shape the ongoing narrative. "
             "- The user input is critical in directing the narrative, ensuring it adapts creatively and meaningfully. "
+            "- The user input needs to be incorporated into this round and not being a suggestion for the next one."
             "- Maintain continuity and enhance the RPG experience while evolving the narrative based on player decisions. "
             "- Allow for dynamic changes, unexpected plot twists, and character development based on user interactions. "
             "- Ensure the story is a living, evolving tale that reflects the choices and creativity of the players."
@@ -67,18 +68,21 @@ class PlayRoundService():
           {attack_instructions}
           - Damage calculation: Life reduced by damage minus defense. If defense > damage, life unchanged.
           - Announce damage dealt by each character and calculate remaining life.
+          - Annouce the remaining life after the damage dealt.
           - Healers can heal one player per round.
           - The boss damages half of the current alive players.
-          - A character's life stays at zero once it reaches it; healers cannot revive.
+          - If a character's life is lesser than zero it should stay at zero and not be negative; healers cannot revive.
           - <IMPORTANT> After every single attack you must check if the boss or character died (life < 0 or life = 0).</IMPORTANT>
           - Announce when a character dies.
-          - if the boss dies, you will ceese the attack and develop the story to its endind.
+          - if the boss dies, you will ceese the attack and develop the story to its ending.
           
-          On Next Round/The End:
+          On Next Round or The End:
 
           If all of the players and the boss are still alive, life != 0 after the attack, you need to develop the story giving the user 2 different possibilities that the story can have on the next round of the game, be creative and let the story develop in two different ways, for exemple: this could be an unexpected twist, a new strategy that has strengths and weaknesses, a new hidden ability or a powerful artifact that changes the course of battle, presenting new strategic options. this resume should have about 3 lines each, remember to return in a imperative form, using words like will do, insted of could do, this part will start with the title "On Next Round:"
 
           If all of the players or the boss are dead, life == 0 after the attack, you need to finalize the story, giving the RPG a nice and creative ending, this part will start with the title "The End:", be aware, this part should only be included if all of the players died or the boss is defeated, life == 0.
+
+          - you should not return both of the options on your answer.
 
           The Characters:
 
