@@ -55,8 +55,6 @@
         <li><code>story</code>: A história completa da partida</li>
         <li><code>characters</code>: Um array contendo cada personagem da partida</li>
     </ul>
-    <h4>Erros</h4>
-    <p>Em caso de erro, por exemplo, se o GPT não retornar as informações no formato esperado, a rota pode retornar status <code>500 Internal Server Error</code> acompanhado de uma mensagem explicativa.</p>
 </section>
 
 <section>
