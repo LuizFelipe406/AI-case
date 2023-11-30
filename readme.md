@@ -21,8 +21,8 @@
     <p>Se a requisição for bem-sucedida, você receberá uma resposta com status <code>200 OK</code> e um corpo de resposta contendo:</p>
     <ul>
         <li><code>gameId</code>: O ID único da partida criada.</li>
-        <li><code>characters</code>: Um array contendo cada personagem do RPG associado aos jogadores fornecidos.</li>
         <li><code>story</code>: A história inicial do RPG.</li>
+        <li><code>characters</code>: Um array contendo cada personagem do RPG associado aos jogadores fornecidos.</li>
     </ul>
     <h3>Jogando uma Partida</h3>
     <p>Para jogar e avançar na história da sua partida de RPG, envie uma requisição POST para a seguinte rota:</p>
@@ -37,10 +37,23 @@
     <p>A resposta bem-sucedida retorna status <code>200 OK</code> com um corpo de resposta contendo:</p>
     <ul>
         <li><code>game_id</code>: O ID da partida.</li>
-        <li><code>characters</code>: Um array atualizado contendo cada personagem do RPG.</li>
-        <li><code>full_story</code>: A história completa da partida até o momento.</li>
         <li><code>round_story</code>: A história que aconteceu especificamente na rodada atual.</li>
         <li><code>on_the_next_round</code>: Sugestões do que você pode incluir no seu próximo input para continuar a partida de RPG.</li>
+        <li><code>ending</code>: Final da história caso o Vilão tenha sido derrotado</li>
+        <li><code>characters</code>: Um array atualizado contendo cada personagem do RPG.</li>
+    </ul>
+    <h4>Erros</h4>
+    <p>Em caso de erro, por exemplo, se o GPT não retornar as informações no formato esperado, a rota pode retornar status <code>500 Internal Server Error</code> acompanhado de uma mensagem explicativa.</p>
+    <h3>Acessando a história de uma partida</h3>
+    <p>Para ver a história completa da sua partida de RPG, envie uma requisição GET para a seguinte rota:</p>
+    <pre><code>GET /game/story/&lt;int:game_id&gt;</code></pre>
+    <h4>Resposta</h4>
+    <p>A resposta bem-sucedida retorna status <code>200 OK</code> com um corpo de resposta contendo:</p>
+    <ul>
+        <li><code>game_id</code>: O ID da partida.</li>
+        <li><code>statu</code>: O status atual da partida</li>
+        <li><code>story</code>: A história completa da partida</li>
+        <li><code>characters</code>: Um array contendo cada personagem da partida</li>
     </ul>
     <h4>Erros</h4>
     <p>Em caso de erro, por exemplo, se o GPT não retornar as informações no formato esperado, a rota pode retornar status <code>500 Internal Server Error</code> acompanhado de uma mensagem explicativa.</p>
